@@ -9,6 +9,8 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
@@ -44,6 +46,12 @@ public class Student {
 	// Only establishes relationship with told
 	@OneToOne(mappedBy="student", cascade=CascadeType.ALL, fetch=FetchType.LAZY)
 	private Contact contact;
+	// Established n:1 relationship
+	// FetchType.LAZY = established relationship when assigned
+	// JoinColumn links the PK to the relationship table ID
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="dorm_id")
+	private Dorm dorm;
 	
 	// <----- Constructors ----->
 	public Student() {
@@ -112,6 +120,15 @@ public class Student {
 
 	public void setContact(Contact contact) {
 		this.contact = contact;
+	}
+	
+	// Dorm
+	public Dorm getDorm() {
+		return dorm;
+	}
+
+	public void setDorm(Dorm dorm) {
+		this.dorm = dorm;
 	}
 	
 	// <----- Methods ----->
