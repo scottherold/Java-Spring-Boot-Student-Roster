@@ -1,6 +1,5 @@
 package com.sherold.studentroster.controllers;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,9 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sherold.studentroster.models.Contact;
 import com.sherold.studentroster.models.Dorm;
-import com.sherold.studentroster.models.JSONDorm;
-import com.sherold.studentroster.models.JSONStudent;
 import com.sherold.studentroster.models.Student;
+import com.sherold.studentroster.models.Track;
 import com.sherold.studentroster.services.ApiService;
 
 @RestController // Designates class as an API controller
@@ -29,77 +27,37 @@ public class ApiController {
 	
 	// REST Route for displaying all students
 	@RequestMapping(value="students", method=RequestMethod.GET, produces="application/json")
-	public ArrayList<JSONStudent> students() {
-		List<Student> sList = apiService.allStudents(); // Queries DB for all students
-		ArrayList<JSONStudent> students = new ArrayList<JSONStudent>(); // ArrayList to return object to JSON
-		for (Student student : sList) {
-			students.add(new JSONStudent(
-						student.getId(), 
-						student.getFirstName(), 
-						student.getLastName(),
-						student.getAge(),
-						student.getContact().getAddress(),
-						student.getContact().getCity(),
-						student.getContact().getState(),
-						student.getCreatedAt(),
-						student.getUpdatedAt()
-						)
-					);
-		}
+	public List<Student> students() {
+		List<Student> students = apiService.allStudents(); // Queries DB for all students
 		return students;
 	}
 	
 	// REST Route for displaying all dorms
 	@RequestMapping(value="dorms", method=RequestMethod.GET, produces="application/json")
-	public ArrayList<JSONDorm> dorms() {
-		List<Dorm> dList = apiService.allDorms(); // Queries DB for all dorms
-		ArrayList<JSONDorm> dorms = new ArrayList<JSONDorm>(); // ArrayList to return object to JSON
-		for (Dorm dorm : dList) {
-			ArrayList<JSONStudent> students = new ArrayList<JSONStudent>();
-			for (Student student : dorm.getStudents()) {
-				students.add(new JSONStudent(
-						student.getId(), 
-						student.getFirstName(), 
-						student.getLastName(),
-						student.getAge(),
-						student.getContact().getAddress(),
-						student.getContact().getCity(),
-						student.getContact().getState(),
-						student.getCreatedAt(),
-						student.getUpdatedAt()
-					));
-			}
-			dorms.add(new JSONDorm(
-					dorm.getId(),
-					dorm.getName(),
-					dorm.getCreatedAt(),
-					dorm.getUpdatedAt(),
-					students
-					));
-		}
+	public List<Dorm> dorms() {
+		List<Dorm> dorms = apiService.allDorms(); // Queries DB for all dorms
 		return dorms;
+	}
+	
+	// REST Route for displaying all tracks
+	@RequestMapping(value="tracks", method=RequestMethod.GET, produces="application/json")
+	public List<Track> tracks() {
+		List<Track> tracks = apiService.allTracks(); // Queries DB for all tracks
+		return tracks;
 	}
 	
 	// REST Route for displaying dorm by id
 	@RequestMapping(value="dorms/{id}", method=RequestMethod.GET, produces="application/json")
-	public JSONDorm dorm(@PathVariable("id") Long id) {
-		Dorm dorm = apiService.findDorm(id);				
-		ArrayList<JSONStudent> students = new ArrayList<JSONStudent>();
-		for (Student student : dorm.getStudents()) {
-			students.add(new JSONStudent(
-					student.getId(), 
-					student.getFirstName(), 
-					student.getLastName(),
-					student.getAge(),
-					student.getContact().getAddress(),
-					student.getContact().getCity(),
-					student.getContact().getState(),
-					student.getCreatedAt(),
-					student.getUpdatedAt()
-				));
-		}
-		
-		return new JSONDorm(dorm.getId(), dorm.getName(), dorm.getCreatedAt(), dorm.getUpdatedAt(), students);
+	public Dorm dorm(@PathVariable("id") Long id) {
+		Dorm dorm = apiService.findDorm(id);
+		return dorm;
+	}
+	
+	// REST Route for displaying track by id
+	@RequestMapping(value="tracks/{id}", method=RequestMethod.GET, produces="application/json")
+	public Track track(@PathVariable("id") Long id) {
+		Track track = apiService.findTrack(id);
+		return track;
 	}
 	
 	// REST Route for creating a new student
@@ -111,7 +69,7 @@ public class ApiController {
 		Student student = new Student(firstName, lastName, age); // Instantiates Student object
 		apiService.createStudent(student);
 	}
-	
+		
 	// REST Route for creating a new contact
 	@RequestMapping("contacts/create")
 	// Uses query parameters for Contact object instantiation
@@ -134,9 +92,17 @@ public class ApiController {
 		apiService.createDorm(dorm);
 	}
 	
+	// REST Route for creating a new track
+	@RequestMapping("tracks/create")
+	// Uses query parameters for Class object instantiation
+	public void createtrack(@RequestParam(value="name") String name) {
+		Track track = new Track(name);
+		apiService.createTrack(track);		
+	}
+	
 	// REST Route for adding a student to a dorm
 	@RequestMapping("dorms/{id}/add")
-	// Uses query parameters for Dorm object instantiation
+	// Uses query parameters student, path variables for dorm
 	public void addStudentDorm(@PathVariable("id") Long dormId, @RequestParam(value="student") Long studentId) {		
 		// Variables for addition
 		Dorm dorm = apiService.findDorm(dormId);
@@ -145,6 +111,20 @@ public class ApiController {
 		
 		// Updates student
 		apiService.createStudent(student);
+	}
+	
+	// REST Route for adding a student to a track
+	@RequestMapping("students/{id}/add")
+	// Uses query parameters for track, path variable for student
+	public void addStudentClass(@PathVariable("id") Long studentId, @RequestParam(value="track") Long trackId) {
+		// Variables for addition
+		Student student = apiService.findStudent(studentId);
+		Track track = apiService.findTrack(trackId);
+		
+		// Updates the track
+		track.getStudents().add(student);
+		apiService.createTrack(track);
+		
 	}
 	
 	// REST Route for removing a student from a dorm

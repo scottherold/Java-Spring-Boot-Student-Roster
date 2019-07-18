@@ -1,6 +1,7 @@
 package com.sherold.studentroster.models;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -10,6 +11,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
@@ -19,6 +22,8 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity // DB entity 
 @Table(name="students") // Table for data
@@ -40,18 +45,32 @@ public class Student {
 	@Column(updatable=false) // Data in column is immutable once created
 	private Date createdAt;
 	private Date updatedAt;
+	
+	// <----- Relationships ----->
+	
 	// One-to-One mapping w/ Contact Model: 
 	// Maps Contact Model to attribute on Student Model, 
 	// Ensures Model is referenced with Student object, 
 	// Only establishes relationship with told
 	@OneToOne(mappedBy="student", cascade=CascadeType.ALL, fetch=FetchType.LAZY)
 	private Contact contact;
+	@JsonIgnore // does not print to JSON
 	// Established n:1 relationship
 	// FetchType.LAZY = established relationship when assigned
 	// JoinColumn links the PK to the relationship table ID
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="dorm_id")
 	private Dorm dorm;
+	
+	@JsonIgnore // does not print to JSON
+	@ManyToMany(fetch = FetchType.LAZY) // establishes relationship type
+	 // Sets up middle table in n:m relationship
+	@JoinTable(
+			name = "students_tracks", // table name
+			joinColumns = @JoinColumn(name = "student_id"), // where object is mapped on middle-table 
+			inverseJoinColumns = @JoinColumn(name = "track_id") // where middle-table maps to other object
+	)
+	private List<Track> tracks;
 	
 	// <----- Constructors ----->
 	public Student() {

@@ -16,6 +16,8 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity // DB entity 
 @Table(name="contacts") // Table for data
 public class Contact {
@@ -38,6 +40,7 @@ public class Contact {
 		// One-to-One mapping w/ Student Model: 
 		// Only establishes relationship with told,
 		// Maps Contact Model to attribute on Student Model on the Primary Key
+		@JsonIgnore // Does not print to JSON
 		@OneToOne(fetch=FetchType.LAZY)
 		@JoinColumn(name="student_id")
 		private Student student;
